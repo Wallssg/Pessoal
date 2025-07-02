@@ -70,12 +70,12 @@ def limpar_html_word(html_sujo):
 
     # 2. Remove spans com estilos "mso-", mantendo cor e negrito se presentes
     for span in soup.find_all("span"):
-        if span is None:
+        try:
+            style = span.attrs.get("style", "")
+        except AttributeError:
             continue
-        style = span.attrs.get("style", "")
         if "mso-" in style:
             del span["style"]
-        # Se for vazio após limpar, remove
         if not span.get_text(strip=True):
             span.decompose()
 
@@ -126,7 +126,7 @@ def limpar_html_word(html_sujo):
 
     return html_limpo.strip()
 
-# === Exemplo de uso ===
+# === Exemplo de uso ===pip l
 if __name__ == "__main__":
     with open("Contrato Padrão de Serviço.htm", "r", encoding="latin1") as f:
         html_original = f.read()

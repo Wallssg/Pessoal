@@ -1,0 +1,10 @@
+# Ignorar pasta de ambiente virtual
+venv/
+
+# Ignorar configurações do PyCharm
+.idea/
+
+# Outros exemplos úteis:
+__pycache__/
+*.pyc
+*.log

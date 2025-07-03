@@ -29,20 +29,22 @@ def limpar_html_word(html_sujo):
             if "mso-" in attr or "bookmark" in attr:
                 del tag[attr]
 
-    # Converte títulos (h1, h2, h3...) em parágrafos com classes do SEI
-    for htag, classe in zip(
-        ["h1", "h2", "h3", "h4", "h5"],
-        ["ETN_Item_Nivel1", "ETN_Item_Nivel2", "ETN_Item_Nivel3", "ETN_Item_Nivel4", "ETN_Item_Nivel5"]
-    ):
-        for tag in soup.find_all(htag):
-            novo_p = soup.new_tag("p", attrs={"class": classe})
-            novo_p.string = tag.get_text(strip=True)
-            tag.replace_with(novo_p)
+    # # Converte títulos (h1, h2, h3...) em parágrafos com classes do SEI
+    # for htag, classe in zip(
+    #     ["h1", "h2", "h3", "h4", "h5"],
+    #     ["ETN_Item_Nivel1", "ETN_Item_Nivel2", "ETN_Item_Nivel3", "ETN_Item_Nivel4", "ETN_Item_Nivel5"]
+    # ):
+    #     for tag in soup.find_all(htag):
+    #         novo_p = soup.new_tag("p", attrs={"class": classe})
+    #         novo_p.string = tag.get_text(strip=True)
+    #         tag.replace_with(novo_p)
 
     # Retira espaços excessivos e normaliza
     texto_final = str(soup)
     texto_final = re.sub(r"\s+", " ", texto_final)  # Remove espaços extras
     texto_final = re.sub(r"> <", "><", texto_final)  # Remove espaços entre tags
+    texto_final = texto_final.replace("", "“").replace("", "”") # Substitui aspas do Windows por aspas tipográficas reais
+
     return texto_final.strip()
 
 # === Exemplo de uso ===

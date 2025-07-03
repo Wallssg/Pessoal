@@ -16,12 +16,29 @@ def limpar_html_word(html_sujo):
             continue
         if "mso-" in style:
             del span["style"]
-        if not span.text.strip():
-            span.decompose()
+        # Verifica se o conteúdo é apenas espaço (ex: <span> </span>)
+        if span.text.strip() == "":
+            if span.string == " ":
+                span.replace_with(" ")  # preserva o espaço
+            else:
+                span.decompose()
 
     # Remove <font>, <strike> e tags inúteis
     for tag in soup.find_all(["font", "strike"]):
         tag.unwrap()
+
+    # Remove tags <a> e qualquer <span> dentro, substituindo pelo texto puro
+    for a in soup.find_all("a"):
+        texto = a.get_text()
+        a.replace_with(texto)
+
+    # Remove <span> com apenas font-family:"Segoe UI" (sem cor ou peso)
+    for span in soup.find_all("span"):
+        style = span.get("style", "").replace(" ", "").lower()
+        if (
+            "font-family:\"segoeui\"" in style or "font-family:&quot;segoeui&quot;" in style
+        ) and "color" not in style and "font-weight" not in style:
+            span.unwrap()
 
     # Remove atributos mso-field, mso-bookmark, etc.
     for tag in soup.find_all(True):

@@ -11,14 +11,23 @@ def limpar_html_word(html_sujo):
     # Remove spans com estilos "mso-"
     for span in soup.find_all("span"):
         try:
-            style = span.attrs.get("style", "")
+            original_style = span.attrs.get("style", "")
         except AttributeError:
             continue
-        if "mso-" in style:
+
+        style_lower = original_style.lower()
+
+        # Se o estilo contém "mso-", remove o atributo style
+        if "mso-" in style_lower:
             del span["style"]
-        # Verifica se o conteúdo é apenas espaço (ex: <span> </span>)
-        if span.text.strip() == "":
-            if span.string == " ":
+
+        # Verifica se o span está vazio ou tem só espaços
+        if not span.text.strip():
+            # Se tem cor ou negrito, mantemos o span
+            if "color" in style_lower or "font-weight" in style_lower:
+                continue
+            # Se contém só um espaço literal
+            elif span.string == " ":
                 span.replace_with(" ")  # preserva o espaço
             else:
                 span.decompose()
@@ -45,6 +54,29 @@ def limpar_html_word(html_sujo):
         for attr in list(tag.attrs):
             if "mso-" in attr or "bookmark" in attr:
                 del tag[attr]
+
+    # Remove duplicações como "CLÁUSULA 7CLÁUSULA 7ª VALORES" e repetições de níveis como "10.1.110.1.1"
+    for htag in ["h1", "h2", "h3", "h4", "h5"]:
+        for tag in soup.find_all(htag):
+            texto = tag.get_text(strip=True)
+
+            # Corrige duplicações como "CLÁUSULA 6CLÁUSULA 6ª OBJETO"
+            texto = re.sub(
+                r"(CL[ÁA]USULA\s*\d+)\s*(CL[ÁA]USULA\s*\d+[ªº]?\s+)",
+                r"\2",
+                texto,
+                flags=re.IGNORECASE
+            )
+
+            # Remove espaço entre número e símbolo ª ou º (ex: "6 ª" → "6ª")
+            texto = re.sub(r"(\d+)\s+([ªº])", r"\1\2", texto)
+
+            # Corrige numerações repetidas, como "10.1.110.1.1" → "10.1.1"
+            padrao_niveis = re.compile(r'(\d+(\.\d+)+)\1')
+            while padrao_niveis.search(texto):
+                texto = padrao_niveis.sub(r'\1', texto)
+
+            tag.string = texto
 
     # # Converte títulos (h1, h2, h3...) em parágrafos com classes do SEI
     # for htag, classe in zip(
